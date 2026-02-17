@@ -9,9 +9,17 @@
 
     <div class="context-box">
         <h3>Context</h3>
+        <!-- Render Markdown Context -->
         <div class="markdown-content">
             {{ context_html | safe }}
         </div>
+
+        <!-- Canvas for Chart.js if chart_data exists -->
+        {% if question.chart_data %}
+        <div class="chart-container" style="position: relative; height:400px; width:100%; margin-top: 20px;">
+            <canvas id="dataChart"></canvas>
+        </div>
+        {% endif %}
     </div>
 
     <div class="question-box">
@@ -57,5 +65,49 @@
     }
 
     setInterval(updateTimer, 1000);
+
+    // Chart Parsing Logic
+    document.addEventListener('DOMContentLoaded', function () {
+        const chartData = {{ question.chart_data | tojson | safe
+    }};
+
+    if (chartData) {
+        const ctx = document.getElementById('dataChart').getContext('2d');
+
+        // Assign colors
+        const colors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+
+        chartData.data.datasets.forEach((ds, index) => {
+            const color = colors[index % colors.length];
+            ds.backgroundColor = chartData.type === 'pie' ? colors : color;
+            ds.borderColor = chartData.type === 'pie' ? '#ffffff' : color;
+            if (chartData.type === 'bar' || chartData.type === 'line') {
+                // small opacity for bar fill
+                ds.backgroundColor = chartData.type === 'bar' ? color + 'CC' : color;
+            }
+        });
+
+        new Chart(ctx, {
+            type: chartData.type,
+            data: chartData.data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Data Visualization' },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    });
 </script>
 {% endblock %}

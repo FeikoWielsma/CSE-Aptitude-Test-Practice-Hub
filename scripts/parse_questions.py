@@ -64,7 +64,8 @@ def parse_readme(file_path, level):
                 "context": "\n".join(current_context),
                 "question": question_match.group(1),
                 "solution": "",
-                "answer": ""
+                "answer": "",
+                "chart_data": parse_chart_data(current_context)
             }
             questions.append(current_question)
             continue
@@ -102,6 +103,104 @@ def parse_readme(file_path, level):
                     current_question['solution'] = line_stripped
 
     return questions
+
+def parse_chart_data(context_lines):
+    """
+    Parses context lines to extract chart data if a graph is detected.
+    Returns a dictionary suitable for Chart.js or None.
+    """
+    full_text = "\n".join(context_lines)
+    
+    chart_type = None
+    if 'Bar Graph' in full_text: chart_type = 'bar'
+    elif 'Line Graph' in full_text: chart_type = 'line'
+    elif 'Pie Chart' in full_text: chart_type = 'pie'
+    
+    if not chart_type:
+        return None
+
+    # Parse Data lines
+    # Format: "- Label: Series1 (Val1), Series2 (Val2)..."
+    # Or: "- Label: Value"
+    
+    labels = []
+    datasets_map = {} # { 'SeriesName': [val, val, ...] }
+    
+    # We need to process lines in order to keep labels aligned
+    data_lines = [line for line in context_lines if line.strip().startswith('-')]
+    
+    if not data_lines:
+        return None
+        
+    for line in data_lines:
+        # Remove "- "
+        content = line.strip().lstrip('-').strip()
+        
+        # Split Label and Data
+        parts = content.split(':')
+        if len(parts) < 2: continue
+        
+        label = parts[0].strip()
+        labels.append(label)
+        
+        data_part = parts[1].strip()
+        
+        # Check for series
+        # Regex to find "Name (Value)"
+        # e.g. "P (50), Q (40)"
+        series_matches = list(re.finditer(r'([^(]+)\s*\((\d+(\.\d+)?)\)', data_part))
+        
+        if series_matches:
+            found_series = set()
+            for match in series_matches:
+                series_name = match.group(1).strip()
+                val = float(match.group(2))
+                
+                if series_name not in datasets_map:
+                    datasets_map[series_name] = []
+                    # Pad with 0s or nulls if this series appeared late? 
+                    # For simplicity, we assume consistent series across labels or handle alignment later.
+                    # Actually, better to initialize with current length - 1 nulls?
+                    # Let's just append and fix lengths later.
+                
+                datasets_map[series_name].append(val)
+                found_series.add(series_name)
+            
+            # Handle missing series for this label?
+            # If a series was seen before but not here, we should append 0 or similar.
+            # Complex to sync perfectly in one pass. 
+        else:
+            # Single value case: "500 units"
+            # Extract first number
+            val_match = re.search(r'(\d+(\.\d+)?)', data_part)
+            val = float(val_match.group(1)) if val_match else 0
+            
+            series_name = "Value"
+            if series_name not in datasets_map: datasets_map[series_name] = []
+            datasets_map[series_name].append(val)
+
+    # Post-process datasets to ensure equal lengths (though typical aptitude qs are consistent)
+    final_datasets = []
+    for series_name, data in datasets_map.items():
+        # Pad if short (simple heuristic)
+        while len(data) < len(labels):
+            data.insert(0, 0) # or append? 
+            # If we missed data at start, insert 0. If data is just short, well...
+            # This parser is best-effort.
+            
+        final_datasets.append({
+            "label": series_name,
+            "data": data,
+            "borderWidth": 1
+        })
+
+    return {
+        "type": chart_type,
+        "data": {
+            "labels": labels,
+            "datasets": final_datasets
+        }
+    }
 
 def main():
     all_questions = []
