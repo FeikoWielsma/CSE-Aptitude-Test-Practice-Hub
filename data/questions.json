@@ -6978,5 +6978,32 @@
         "solution": "New funding = 500,000 \u00d7 1.1 = $550,000. Publications = 50. Average = 550,000 \u00f7 50 = $11,000.",
         "answer": "$11,000",
         "chart_data": null
+    },
+    {
+        "id": 301,
+        "level": "Real",
+        "context": "**Table 1: Month's sales of Internet and cable TV packages**\n\n| | Platinum | Executive | Premium | Diamond | Silver |\n|---|---|---|---|---|---|\n| **North** | 4,630 | 3,765 | 6,100 | 6,125 | 6,300 |\n| **North-East** | 8,965 | 8,600 | 3,765 | 4,765 | 6,100 |\n| **East** | 6,725 | 6,000 | 5,450 | 5,700 | 6,730 |\n| **South-East** | 8,700 | 6,120 | 6,760 | 6,800 | 6,325 |\n| **South** | 6,800 | 8,760 | 4,900 | 3,630 | 3,500 |\n| **South-West** | 3,775 | 6,265 | 5,070 | 5,300 | 3,700 |\n| **West** | 8,600 | 8,965 | 6,125 | 5,450 | 7,500 |\n| **Monthly Cost (\u00a3)** | 45 | 60 | 30 | 40 | 25 |\n| **Contract Length (months)**| 24 | 12 | 12 | 6 | 24 |\n",
+        "question": "What is the average monthly sale value of the Diamond package across the 7 regions (to the nearest \u00a3)?",
+        "solution": "Sum of Diamond sales = 6,125 (North) + 4,765 (North-East) + 5,700 (East) + 6,800 (South-East) + 3,630 (South) + 5,300 (South-West) + 5,450 (West) = 37,770.\nAverage = 37,770 / 7 \u2248 5,395.71.\nRounding to the nearest \u00a3 gives \u00a35,396.",
+        "answer": "5,396",
+        "chart_data": null
+    },
+    {
+        "id": 302,
+        "level": "Real",
+        "context": "**Table 1: Month's sales of Internet and cable TV packages**\n\n| | Platinum | Executive | Premium | Diamond | Silver |\n|---|---|---|---|---|---|\n| **North** | 4,630 | 3,765 | 6,100 | 6,125 | 6,300 |\n| **North-East** | 8,965 | 8,600 | 3,765 | 4,765 | 6,100 |\n| **East** | 6,725 | 6,000 | 5,450 | 5,700 | 6,730 |\n| **South-East** | 8,700 | 6,120 | 6,760 | 6,800 | 6,325 |\n| **South** | 6,800 | 8,760 | 4,900 | 3,630 | 3,500 |\n| **South-West** | 3,775 | 6,265 | 5,070 | 5,300 | 3,700 |\n| **West** | 8,600 | 8,965 | 6,125 | 5,450 | 7,500 |\n| **Monthly Cost (\u00a3)** | 45 | 60 | 30 | 40 | 25 |\n| **Contract Length (months)**| 24 | 12 | 12 | 6 | 24 |\n",
+        "question": "In which region was the second highest total number of Platinum, Executive and Premium packages sold (over the previous month)?",
+        "solution": "Calculate totals for Platinum + Executive + Premium for each region:\n* North: 4,630 + 3,765 + 6,100 = 14,495\n* North-East: 8,965 + 8,600 + 3,765 = 21,330\n* East: 6,725 + 6,000 + 5,450 = 18,175\n* **South-East**: 8,700 + 6,120 + 6,760 = **21,580** (2nd Highest)\n* South: 6,800 + 8,760 + 4,900 = 20,460\n* South-West: 3,775 + 6,265 + 5,070 = 15,110\n* **West**: 8,600 + 8,965 + 6,125 = **23,690** (Highest)",
+        "answer": "South-East",
+        "chart_data": null
+    },
+    {
+        "id": 303,
+        "level": "Real",
+        "context": "**Table 1: Month's sales of Internet and cable TV packages**\n\n| | Platinum | Executive | Premium | Diamond | Silver |\n|---|---|---|---|---|---|\n| **North** | 4,630 | 3,765 | 6,100 | 6,125 | 6,300 |\n| **North-East** | 8,965 | 8,600 | 3,765 | 4,765 | 6,100 |\n| **East** | 6,725 | 6,000 | 5,450 | 5,700 | 6,730 |\n| **South-East** | 8,700 | 6,120 | 6,760 | 6,800 | 6,325 |\n| **South** | 6,800 | 8,760 | 4,900 | 3,630 | 3,500 |\n| **South-West** | 3,775 | 6,265 | 5,070 | 5,300 | 3,700 |\n| **West** | 8,600 | 8,965 | 6,125 | 5,450 | 7,500 |\n| **Monthly Cost (\u00a3)** | 45 | 60 | 30 | 40 | 25 |\n| **Contract Length (months)**| 24 | 12 | 12 | 6 | 24 |\n",
+        "question": "A customer purchases a Diamond contract and then switches 6 months later to a Platinum contract due to a sale deal of 20% off the monthly Platinum package cost. What's the total cost for the customer over the two contract periods?",
+        "solution": "Diamond Contract Cost: 6 months (contract length) \u00d7 \u00a340/month = \u00a3240.\nPlatinum Contract Cost:\n* Standard Monthly Cost: \u00a345.\n* Discounted Price: \u00a345 - (20% of \u00a345) = \u00a345 - \u00a39 = \u00a336.\n* Platinum Contract Length: 24 months.\n* Total Platinum Cost: 24 \u00d7 \u00a336 = \u00a3864.\nTotal Cost = \u00a3240 (Diamond) + \u00a3864 (Platinum) = \u00a31,104.",
+        "answer": "1,104",
+        "chart_data": null
     }
 ]

@@ -75,30 +75,43 @@
 </style>
 
 <script>
-    // Simple Timer
-    let seconds = 0;
+    // Countdown Timer
+    let timeLimit = {{ time_limit }};
+    let timeLeft = timeLimit;
     const timerElement = document.getElementById('timer');
 
-    // Check if there's a stored start time in sessionStorage
-    let startTime = sessionStorage.getItem('quizStartTime');
-    if (!startTime) {
-        startTime = Date.now();
-        sessionStorage.setItem('quizStartTime', startTime);
-    }
-
     function updateTimer() {
-        const now = Date.now();
-        const diff = Math.floor((now - startTime) / 1000);
-
-        const minutes = Math.floor(diff / 60);
-        const secs = diff % 60;
+        const minutes = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
 
         timerElement.textContent =
             (minutes < 10 ? '0' + minutes : minutes) + ':' +
             (secs < 10 ? '0' + secs : secs);
+
+        // Visual warning
+        if (timeLeft <= 15) {
+            timerElement.style.color = '#EF4444'; // Red
+            timerElement.style.fontWeight = 'bold';
+        } else {
+            timerElement.style.color = ''; // Reset
+        }
+
+        if (timeLeft > 0) {
+            timeLeft--;
+        } else {
+            // Optional: Auto-submit or just stay red?
+            // User request implies "limit", usually means forced move. 
+            // We can just label it "Time's Up!" for now or force submit.
+            // Let's force submit for authentic "test" feel if feasible, 
+            // but for "practice" maybe just annoyance?
+            // Let's stick to visual for now to avoid frustration.
+            timerElement.textContent = "00:00";
+        }
     }
 
-    setInterval(updateTimer, 1000);
+    // Initial call
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
 
     // Chart Parsing Logic
     document.addEventListener('DOMContentLoaded', function () {

@@ -186,13 +186,65 @@ def generate_distractors(correct_answer):
                      add_option(correct_answer.replace(m, months_full[idx]))
                  break
 
-    # 5. Generic Fallback
+    # 5. Generic Fallback and Fill 
+    # Try to fill up to 25 options
+    target_count = 25
+    
+    # If we have a detected step size, fill the gap
+    if len(options) < target_count:
+         # Re-detect context
+         num_match = re.match(r'^([^\d]*)([\d,]+(?:\.\d+)?)([^\d]*)$', correct_answer.strip())
+         if num_match:
+             try:
+                 num_str = num_match.group(2).replace(',', '')
+                 val = float(num_str)
+                 is_int = '.' not in num_match.group(2)
+                 prefix = num_match.group(1) or ""
+                 suffix = num_match.group(3) or ""
+                 
+                 # Determine step again if needed or just use consistent small steps
+                 step_size = 1
+                 if is_int and val > 10:
+                      p = 1
+                      while p < val:
+                          if val % (p*10) == 0: p *= 10
+                          else: break
+                      step_size = p
+                      if val % (p*5) == 0: step_size = p * 5
+                 
+                 # Generate a wider range
+                 # Go 15 steps down and 15 steps up
+                 for i in range(-15, 16):
+                     if len(options) >= target_count + 10: break # cap slightly higer
+                     if i == 0: continue
+                     
+                     new_val = val + (i * step_size)
+                     if new_val <= 0: continue
+                     
+                     if is_int: formatted_num = f"{int(new_val)}"
+                     else: formatted_num = f"{new_val:.2f}"
+                     
+                     if ',' in num_match.group(2):
+                         try: formatted_num = f"{float(formatted_num):,.0f}" if is_int else f"{float(formatted_num):,.2f}"
+                         except: pass
+                         
+                     add_option(f"{prefix}{formatted_num}{suffix}")
+             except: pass
+
     final_options = list(options)
-    random.shuffle(final_options)
-    while len(final_options) < 6:
-       final_options.append("None of the above") 
-       
-    return final_options[:6]
+    
+    # Sort options naturally
+    def natural_sort_key(s):
+        # Extract the first number found for sorting
+        nums = re.findall(r'-?\d+(?:\.\d+)?', s.replace(',', ''))
+        if nums:
+            return float(nums[0])
+        return s
+        
+    final_options.sort(key=natural_sort_key)
+    
+    # Allow logic to have more than target if generated naturally, but cap at 30?
+    return final_options[:30]
 
 @app.route('/')
 def index():
@@ -256,14 +308,34 @@ def quiz():
     options = generate_distractors(question_data.get('answer', ''))
     
     if request.method == 'POST':
-        user_answer = request.form.get('answer', '').strip()
+        # Handle multiple answers if present
+        # Check for answer_0, answer_1...
+        user_answer_parts = []
+        i = 0
+        while True:
+            part = request.form.get(f'answer_{i}')
+            if part is None:
+                # If we don't find answer_0, check generic 'answer'
+                if i == 0:
+                     val = request.form.get('answer')
+                     if val: user_answer_parts.append(val.strip())
+                break
+            user_answer_parts.append(part.strip())
+            i += 1
+            
+        user_answer = " | ".join(user_answer_parts) if len(user_answer_parts) > 1 else (user_answer_parts[0] if user_answer_parts else "")
         correct_answer = question_data.get('answer', '')
         
         # Timing calculation
         start_time = session.get('question_start_time', time.time())
         time_taken = time.time() - start_time
         
-        is_correct = user_answer == correct_answer 
+        # Compare ignoring whitespace around pipes
+        # Standardize join
+        correct_parts = [p.strip() for p in correct_answer.split('|')]
+        user_parts = [p.strip() for p in user_answer.split('|')]
+        
+        is_correct = (correct_parts == user_parts)
         
         if is_correct:
             session['score'] = session.get('score', 0) + 1
@@ -289,12 +361,28 @@ def quiz():
     if 'question_start_time' not in session:
         session['question_start_time'] = time.time()
         
+    # Determine time limit based on Korn Ferry rules
+    # 90s for first question of a new context (or first question overall)
+    # 75s for subsequent questions in the same context
+    time_limit = 75
+    if current_index == 0:
+        time_limit = 90
+    else:
+        prev_q = questions[current_index - 1]
+        # Compare context strings (using a hash might be safer if large, but string compare is fine here)
+        if question_data.get('context') != prev_q.get('context'):
+            time_limit = 90
+            
+    # Check if options is a list of lists (multi-select)
+    # Passed to template
+    
     return render_template('quiz.html', 
                            question=question_data, 
                            context_html=context_html,
                            options=options,
                            index=current_index + 1, 
-                           total=len(questions))
+                           total=len(questions),
+                           time_limit=time_limit)
 
 @app.route('/finish_early')
 def finish_early():
