@@ -145,16 +145,46 @@ def generate_distractors(correct_answer):
             for c in candidates:
                 if c != char: add_option(f"{entity} {c}")
 
-    # 4. Month Fallback
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    for m in months:
-        if len(options) >= 6: break
-        if m in correct_answer: # Simple substring check
-             # If "Jan", add "Feb", "Mar"...
-             curr_idx = months.index(m)
-             for i in range(1, 6):
-                 add_option(correct_answer.replace(m, months[(curr_idx+i)%12]))
-             break
+    # 4. Month Pattern: "January", "Feb", etc.
+    months_full = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    months_short = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    
+    # Check full months first
+    found_month = False
+    for i, m in enumerate(months_full):
+        if m.lower() == correct_answer.strip().lower():
+            # It's exactly a month name
+            # Pick 5 other random months
+            others = months_full[:i] + months_full[i+1:]
+            random.shuffle(others)
+            for o in others[:6]:
+                add_option(o)
+            found_month = True
+            break
+            
+    if not found_month:
+        # Check short months
+        for i, m in enumerate(months_short):
+             if m.lower() == correct_answer.strip().lower():
+                others = months_short[:i] + months_short[i+1:]
+                random.shuffle(others)
+                for o in others[:6]:
+                    add_option(o)
+                found_month = True
+                break
+                
+    if not found_month:
+        # Check for substring (e.g. "January 2020") - strictly word boundary or replace carefully
+        # If we see "Jan" but not "January", be careful. 
+        # For now, let's just look for the full month name inside the string to be safe
+        for i, m in enumerate(months_full):
+            if m in correct_answer:
+                 # Replace "January" with "February" in "Revenue for January"
+                 indices = list(range(12)); indices.remove(i)
+                 random.shuffle(indices)
+                 for idx in indices[:6]:
+                     add_option(correct_answer.replace(m, months_full[idx]))
+                 break
 
     # 5. Generic Fallback
     final_options = list(options)
