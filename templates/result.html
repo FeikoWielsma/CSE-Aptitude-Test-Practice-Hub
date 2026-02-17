@@ -12,6 +12,7 @@
             <p><strong>Question:</strong> {{ item.question }}</p>
             <p><strong>Your Answer:</strong> {{ item.user_answer }}</p>
             <p><strong>Correct Answer:</strong> {{ item.correct_answer }}</p>
+            <p><strong>Time Taken:</strong> {{ "%.1f"|format(item.time_taken) }}s</p>
             <div class="explanation">
                 <strong>Solution:</strong>
                 <pre>{{ item.explanation }}</pre>

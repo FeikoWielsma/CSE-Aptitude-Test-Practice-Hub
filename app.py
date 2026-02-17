@@ -180,6 +180,8 @@ def start_quiz(level):
     
     return redirect(url_for('quiz'))
 
+import time
+
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
     questions = session.get('quiz_questions', [])
@@ -194,12 +196,15 @@ def quiz():
     context_html = markdown.markdown(question_data.get('context', ''), extensions=['tables'])
     
     # Generate Options
-    # We generate them fresh on every render. If we wanted consistency on refresh, we'd store them.
     options = generate_distractors(question_data.get('answer', ''))
     
     if request.method == 'POST':
         user_answer = request.form.get('answer', '').strip()
         correct_answer = question_data.get('answer', '')
+        
+        # Timing calculation
+        start_time = session.get('question_start_time', time.time())
+        time_taken = time.time() - start_time
         
         is_correct = user_answer == correct_answer 
         
@@ -211,12 +216,24 @@ def quiz():
             'user_answer': user_answer,
             'correct_answer': correct_answer,
             'is_correct': is_correct,
-            'explanation': question_data.get('solution', '')
+            'explanation': question_data.get('solution', ''),
+            'time_taken': time_taken
         })
         
         session['current_index'] = current_index + 1
         session.modified = True 
+        
+        # Clear start time so next GET sets a new one
+        session.pop('question_start_time', None)
+        
         return redirect(url_for('quiz'))
+    
+    # GET request - Set start time if not already set (reloading page shouldn't reset timer ideally, 
+    # but for per-question accuracy 'viewing time' counts. 
+    # If we want strict 'attempt' time, we set it only if it doesn't exist?
+    # But if they navigate away and come back? Let's reset on new question load (which happens after POST redirect)
+    if 'question_start_time' not in session:
+        session['question_start_time'] = time.time()
         
     return render_template('quiz.html', 
                            question=question_data, 
@@ -225,11 +242,15 @@ def quiz():
                            index=current_index + 1, 
                            total=len(questions))
 
+@app.route('/finish_early')
+def finish_early():
+    return redirect(url_for('result'))
+
 @app.route('/result')
 def result():
     return render_template('result.html', 
                            score=session.get('score', 0), 
-                           total=len(session.get('answers', [])),
+                           total=len(session.get('answers', [])), # Completed questions
                            details=session.get('answers', []))
 
 if __name__ == '__main__':
