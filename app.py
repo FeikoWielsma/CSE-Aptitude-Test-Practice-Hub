@@ -95,9 +95,9 @@ def generate_single_distractor_set(correct_answer):
             variations = []
             for i in range(-5, 6):
                 if i == 0: continue
-                variations.append(f"{a+i} : {b+i}")
-                variations.append(f"{a} : {b+i}")
-                variations.append(f"{a+i} : {b}")
+                if (a+i) > 0 and (b+i) > 0: variations.append(f"{a+i} : {b+i}")
+                if (b+i) > 0: variations.append(f"{a} : {b+i}")
+                if (a+i) > 0: variations.append(f"{a+i} : {b}")
             variations.append(f"{b} : {a}")
             for v in variations: add_option(v)
 

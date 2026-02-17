@@ -1,7 +1,7 @@
-
 import random
 import archetypes
 from functools import reduce
+from fractions import Fraction
 
 class TableGenerator:
     def __init__(self):
