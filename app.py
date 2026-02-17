@@ -221,6 +221,8 @@ def start_quiz(level):
     session['current_index'] = 0
     session['score'] = 0
     session['answers'] = []
+    session['total_time'] = 0
+    session['total_answered'] = 0
     
     return redirect(url_for('quiz'))
 
@@ -229,6 +231,8 @@ def start_endless():
     session['mode'] = 'endless'
     session['score'] = 0
     session['answers'] = []
+    session['total_time'] = 0
+    session['total_answered'] = 0
     
     # Generate first set
     data = generate_endless_set()
@@ -301,6 +305,10 @@ def quiz():
         start_time = session.get('question_start_time', time.time())
         time_taken = time.time() - start_time
         
+        # Update Stats
+        session['total_time'] = session.get('total_time', 0) + time_taken
+        session['total_answered'] = session.get('total_answered', 0) + 1
+        
         # Compare ignoring whitespace around pipes
         # Standardize join
         correct_parts = [p.strip() for p in correct_answer.split('|')]
@@ -310,6 +318,14 @@ def quiz():
         
         if is_correct:
             session['score'] = session.get('score', 0) + 1
+            flash_msg = "Correct! Well done."
+            flash_cat = "success"
+        else:
+            flash_msg = f"Incorrect. The answer was {correct_answer}."
+            flash_cat = "error"
+            
+        from flask import flash
+        flash(flash_msg, flash_cat)
             
         session['answers'].append({
             'question': question_data.get('question', ''),
@@ -344,6 +360,11 @@ def quiz():
         if question_data.get('context') != prev_q.get('context'):
             time_limit = 90
             
+    # Calculate Average Time
+    total_time = session.get('total_time', 0)
+    total_answered = session.get('total_answered', 0)
+    avg_time = total_time / total_answered if total_answered > 0 else 0
+    
     # Check if options is a list of lists (multi-select)
     # Passed to template
     
@@ -353,7 +374,8 @@ def quiz():
                            options=options,
                            index=current_index + 1, 
                            total=len(questions),
-                           time_limit=time_limit)
+                           time_limit=time_limit,
+                           avg_time=avg_time)
 
 @app.route('/finish_early')
 def finish_early():

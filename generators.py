@@ -567,8 +567,8 @@ class AttractionTableGenerator:
         
         base_prices = {
             "Adults": random.randint(10, 25),
-            "Children (<16)": random.randint(5, 15),
-            "Seniors (>60)": random.randint(5, 15)
+            "Children": random.randint(5, 15),
+            "Seniors": random.randint(5, 15)
         }
         
         for g in groups:

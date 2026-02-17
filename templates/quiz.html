@@ -4,8 +4,23 @@
 <div class="quiz-container">
     <div class="quiz-header">
         <span class="progress">Question {{ index }} of {{ total }}</span>
+        <span class="stats">Avg Time: {{ "%.1f"|format(avg_time) }}s</span>
         <span class="timer" id="timer">00:00</span>
     </div>
+
+    <!-- Flash Messages Popup -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="flash-popup" class="flash-popup">
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+            <span>{{ message }}</span>
+            <button onclick="this.closest('.flash-popup').style.display='none'" class="close-btn">OK</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
     <div class="context-box">
         <h3>Context</h3>
@@ -155,6 +170,15 @@
             }
         });
     }
+    // Auto-dismiss Flash Messages
+    setTimeout(() => {
+        const flashPopup = document.getElementById('flash-popup');
+        if (flashPopup) {
+            flashPopup.style.opacity = '0';
+            setTimeout(() => flashPopup.remove(), 500); // Remove after fade
+        }
+    }, 4000); // 4 seconds
+
     });
 </script>
 {% endblock %}
