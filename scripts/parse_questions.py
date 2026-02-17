@@ -16,6 +16,7 @@ def parse_readme(file_path, level):
     # Regex patterns
     context_start_pattern = re.compile(r'^\*\*(Table|Bar Graph|Pie Chart|Line Graph|Caselet|Combination Chart).*?\*\*', re.IGNORECASE)
     question_start_pattern = re.compile(r'^\d+\.\s+\*\*Question\*\*:\s+(.*)')
+    options_start_pattern = re.compile(r'^\s*\*\*Options\*\*:\s+(.*)', re.IGNORECASE)
     solution_start_pattern = re.compile(r'^\s*\*\*Solution\*\*:\s*')
     answer_start_pattern = re.compile(r'^\s*\*\*Answer\*\*:\s+(.*)')
     
@@ -68,6 +69,15 @@ def parse_readme(file_path, level):
                 "chart_data": parse_chart_data(current_context)
             }
             questions.append(current_question)
+            continue
+
+        # 2.5 Check for Options (Manual Distractors)
+        options_match = options_start_pattern.match(line_stripped)
+        if options_match:
+            if current_question:
+                # Split by comma and strip
+                raw_opts = options_match.group(1).split(',')
+                current_question['options'] = [o.strip() for o in raw_opts if o.strip()]
             continue
 
         # 3. Check for Solution

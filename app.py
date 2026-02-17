@@ -158,11 +158,15 @@ def generate_single_distractor_set(correct_answer):
     return final_options[:30]
 
 
-def generate_distractors(correct_answer):
+def generate_distractors(correct_answer, manual_options=None):
     """
     Generates distractors. Can return a list of strings (single dropdown)
     OR a list of lists (multiple dropdowns) if correct_answer contains '|'.
+    If manual_options is provided (list of strings), uses that instead of generating.
     """
+    if manual_options and isinstance(manual_options, list) and len(manual_options) > 0:
+        return manual_options
+
     if '|' in correct_answer:
         # Split into parts
         parts = [p.strip() for p in correct_answer.split('|')]
@@ -233,7 +237,7 @@ def quiz():
     context_html = markdown.markdown(question_data.get('context', ''), extensions=['tables'])
     
     # Generate Options
-    options = generate_distractors(question_data.get('answer', ''))
+    options = generate_distractors(question_data.get('answer', ''), question_data.get('options', None))
     
     if request.method == 'POST':
         # Handle multiple answers if present

@@ -48,6 +48,14 @@ class TestApp(unittest.TestCase):
         self.assertIn("Premium", flat_first)
         self.assertIn("50", flat_second)
 
+    def test_manual_options(self):
+        """Test that manual options are respected."""
+        answer = "North"
+        manual = ["North", "South", "East", "West"]
+        opts = generate_distractors(answer, manual)
+        self.assertEqual(opts, manual)
+        self.assertIn("North", opts)
+
     def test_session_flow(self):
         """Test starting a quiz initializes session correctly."""
         with self.app as client:

@@ -22,6 +22,7 @@
    **Answer**: 5,396
 
 2. **Question**: In which region was the second highest total number of Platinum, Executive and Premium packages sold (over the previous month)?
+   **Options**: North, North-East, East, South-East, South, South-West, West
    **Solution**:
    Calculate totals for Platinum + Executive + Premium for each region:
    * North: 4,630 + 3,765 + 6,100 = 14,495
