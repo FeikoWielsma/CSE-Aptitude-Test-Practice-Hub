@@ -17,16 +17,47 @@ class TableGenerator:
         e.g. Companies x Quarters (Revenue)
         """
         # 1. Choose Dimensions
-        entity_type = random.choice(["Company", "Department", "City", "Product"])
+        # 1. Choose Dimensions
+        # Expanded Entity Types
+        entity_type = random.choice([
+            "Company", "Department", "City", "Product", 
+            "Hospital", "Retailer", "Energy Provider", "University",
+            "Bank", "Infrastructure Project", "Risk Model"
+        ])
         
         if entity_type == "Company":
             entities = random.sample(archetypes.COMPANIES, 5)
+            possible_metrics = archetypes.METRICS_FINANCIAL + archetypes.METRICS_UNITS
         elif entity_type == "Department":
             entities = random.sample(archetypes.DEPARTMENTS, 5)
+            possible_metrics = archetypes.METRICS_FINANCIAL
         elif entity_type == "City":
             entities = random.sample(archetypes.CITIES, 5)
-        else:
+            possible_metrics = archetypes.METRICS_FINANCIAL + ["Population (k)", "GDP ($bn)"]
+        elif entity_type == "Product":
             entities = random.sample(archetypes.PRODUCTS, 5)
+            possible_metrics = ["Sales ($m)", "Units Sold"]
+        elif entity_type == "Hospital":
+            entities = random.sample(archetypes.HOSPITALS, 5)
+            possible_metrics = archetypes.METRICS_HEALTH
+        elif entity_type == "Retailer":
+            entities = random.sample(archetypes.RETAILERS, 5)
+            possible_metrics = archetypes.METRICS_RETAIL
+        elif entity_type == "Energy Provider":
+            entities = random.sample(archetypes.ENERGY_PROVIDERS, 5)
+            possible_metrics = archetypes.METRICS_ENERGY
+        elif entity_type == "University":
+            entities = random.sample(archetypes.UNIVERSITIES, 5)
+            possible_metrics = archetypes.METRICS_EDU
+        elif entity_type == "Bank":
+            entities = random.sample(archetypes.BANKS, 5)
+            possible_metrics = archetypes.RISK_METRICS     
+        elif entity_type == "Infrastructure Project":
+            entities = random.sample(archetypes.INFRA_PROJECTS, 5)
+            possible_metrics = ["Cost ($m)", "ROI (%)", "Duration (Years)", "Risk Score (1-10)"]
+        else: # Risk Model
+            entities = random.sample(archetypes.MODEL_TYPES, 4)
+            possible_metrics = archetypes.VALIDATION_METRICS
             
         time_mode = random.choice(["Quarterly", "Yearly", "Monthly"])
         if time_mode == "Quarterly":
@@ -36,7 +67,7 @@ class TableGenerator:
         else:
             cols = random.choice([archetypes.TIMEFRAMES_MONTHLY_H1, archetypes.TIMEFRAMES_MONTHLY_H2])
             
-        metric = random.choice(archetypes.METRICS_FINANCIAL)
+        metric = random.choice(possible_metrics)
         
         # 2. Generate Data
         # Base range
@@ -90,7 +121,12 @@ class TableGenerator:
             self.gen_q_max_in_col,
             self.gen_q_growth,
             self.gen_q_ratio,
-            self.gen_q_difference
+            self.gen_q_difference,
+            self.gen_q_projected_growth,
+            self.gen_q_percentage_share,
+            self.gen_q_avg_comparison,
+            self.gen_q_expected_loss,
+            self.gen_q_validation_error
         ]
         
         # Pick 3 unique questions type if possible
@@ -232,6 +268,85 @@ class TableGenerator:
             "answer": f"{diff:,}",
             "solution": f"{v2} - {v1} = {diff}",
              "options": None
+        }
+
+    # --- New Complex Questions ---
+
+    def gen_q_projected_growth(self):
+        # "If [Entity] grows by X% in the next period, what will be the value?"
+        # Harder: "If [Entity A] grows by X% and [Entity B] declines by Y%, what is the new difference?"
+        
+        idxs = random.sample(range(len(self.row_labels)), 2)
+        r1, r2 = idxs[0], idxs[1]
+        e1, e2 = self.row_labels[r1], self.row_labels[r2]
+        
+        # Last column values
+        c_idx = len(self.headers) - 1
+        v1 = self.grid[r1][c_idx]
+        v2 = self.grid[r2][c_idx]
+        
+        growth1 = random.choice([5, 10, 15, 20])
+        decline2 = random.choice([5, 10, 15])
+        
+        new_v1 = v1 * (1 + growth1/100)
+        new_v2 = v2 * (1 - decline2/100)
+        
+        new_diff = abs(new_v1 - new_v2)
+        new_diff_rounded = int(round(new_diff))
+        
+        return {
+            "question": f"If, in the next period, {e1} grows by {growth1}% and {e2} declines by {decline2}%, what would be the absolute difference between them (rounded to nearest integer)?",
+            "answer": f"{new_diff_rounded:,}",
+            "solution": f"{e1}: {v1} * {1 + growth1/100} = {new_v1:.1f}. {e2}: {v2} * {1 - decline2/100} = {new_v2:.1f}. Diff: |{new_v1:.1f} - {new_v2:.1f}| = {new_diff:.1f} -> {new_diff_rounded:,}",
+            "options": None
+        }
+
+    def gen_q_percentage_share(self):
+        # "What percentage of total [Col] did [Entity] account for?"
+        c_idx = random.randint(0, len(self.headers)-1)
+        col = self.headers[c_idx]
+        
+        # Calculate column total
+        col_vals = [row[c_idx] for row in self.grid]
+        total = sum(col_vals)
+        if total == 0: return None
+        
+        # Pick simplified entity if possible (one that is roughly 10%, 20%, 25%? Hard to force)
+        # Just pick random
+        r_idx = random.randint(0, len(self.row_labels)-1)
+        entity = self.row_labels[r_idx]
+        val = self.grid[r_idx][c_idx]
+        
+        share = (val / total) * 100
+        
+        return {
+            "question": f"What percentage of the total {self.title.split('(')[0]} in {col} is accounted for by {entity} (to 1 decimal place)?",
+            "answer": f"{share:.1f}%",
+            "solution": f"{entity}: {val}. Total: {total}. ({val}/{total}) * 100 = {share:.2f}%",
+            "options": None
+        }
+
+    def gen_q_avg_comparison(self):
+        # "Which companies performed above average in [Col]?"
+        c_idx = random.randint(0, len(self.headers)-1)
+        col = self.headers[c_idx]
+        
+        col_vals = [row[c_idx] for row in self.grid]
+        avg = sum(col_vals) / len(col_vals)
+        
+        above_avg = []
+        for i, val in enumerate(col_vals):
+            if val > avg:
+                above_avg.append(self.row_labels[i])
+                
+        # To make it a single choice question: "How many [Entities] were above average in [Col]?"
+        count = len(above_avg)
+        
+        return {
+            "question": f"How many {self.title.split('(')[0].split()[-1]}s (Entities) were above average in {col} (Avg: {avg:.1f})?",
+            "answer": f"{count}",
+            "solution": f"Average is {avg:.1f}. Entities above: {', '.join(above_avg)} ({count}).",
+            "options": ["0", "1", "2", "3", "4", "5"]
         }
 
 class StockTableGenerator:

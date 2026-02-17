@@ -54,3 +54,82 @@ REGIONS = ["North", "South", "East", "West", "Midlands", "North-East", "North-We
 PACKAGES = ["Platinum", "Gold", "Silver", "Bronze", "Basic", "Premium", "Ultimate", "Starter"]
 ATTRACTIONS = ["Theme Park", "Water Park", "Safari Park", "Zoo", "Aquarium", "Adventure Land", "Dino World"]
 AGE_GROUPS = ["Children (<16)", "Adults", "Seniors (>60)"]
+
+# --- Additional Sectors ---
+
+HOSPITALS = [
+    "General Hospital", "St. Mary's", "City Medical", "County General", "Hope Clinic", 
+    "Mercy Health", "Unity Care", "Prime Health"
+]
+WARDS = ["Cardiology", "ER", "Pediatrics", "Oncology", "Neurology", "Orthopedics", "Maternity"]
+
+RETAILERS = [
+    "SuperMart", "MegaBuy", "QuickShop", "FreshGrocer", "ValueKing", "HyperStore", "DailyNeeds"
+]
+
+ENERGY_PROVIDERS = [
+    "PowerGen", "EcoEnergy", "GridCorp", "BrightSpark", "Solaris", "AtomCo", "HydroFlow"
+]
+
+ENERGY_SOURCES = ["Coal", "Gas", "Nuclear", "Wind", "Solar", "Hydro", "Biomass"]
+
+UNIVERSITIES = [
+    "Oxford Brookes", "Cambridge Tech", "London Uni", "Manchester Met", "Leeds Arts", "Bristol Sci"
+]
+FACULTIES = ["Engineering", "Arts", "Science", "Law", "Medicine", "Business", "Humanities"]
+
+# --- Quant / Risk / Banking Archetypes ---
+
+BANKS = [
+    "Rabobank", "AIIB", "HSBC", "JPMorgan", "ICBC", "Barclays", "Deutsche Bank", "Mizuho"
+]
+
+INFRA_PROJECTS = [
+    "HSR Railway (Asia)", "Solar Farm (Gobi)", "Hydro Dam (Mekong)", "Port Expansion (Gwadar)", 
+    "Metro System (Delhi)", "Wind Park (North Sea)", "Bridge (Pearl River)"
+]
+
+RISK_METRICS = [
+    "Probability of Default (%)", "Loss Given Default (%)", "Exposure at Default ($m)", 
+    "Value at Risk (99%)", "Capital Adequacy Ratio (%)", "Liquidity Coverage Ratio (%)"
+]
+
+MODEL_TYPES = [
+    "Credit Risk Model", "Market Risk Model", "Liquidity Model", "Pricing Model", "Fraud Detection"
+]
+VALIDATION_METRICS = [
+    "MAE (Mean Abs Error)", "RMSE", "R-Squared", "Backtest Exceptions", "Stability Index (PSI)"
+]
+
+# Update Metrics Maps
+METRICS_HEALTH = ["Patients Admitted", "Avg Wait Time (mins)", "Doctors on Duty", "Operations Performed"]
+METRICS_RETAIL = ["Daily Footfall", "Avg Basket Size (£)", "Transactions", "Loyalty Signups"]
+METRICS_ENERGY = ["Output (GWh)", "CO2 Emissions (Gt)", "Revenue ($m)", "Capacity (MW)"]
+METRICS_EDU = ["Students Enrolled", "Graduates", "Research Grants (£k)", "Publications"]
+
+HOSPITALS = [
+    "General Hospital", "St. Mary's", "City Medical", "County General", "Hope Clinic", 
+    "Mercy Health", "Unity Care", "Prime Health"
+]
+WARDS = ["Cardiology", "ER", "Pediatrics", "Oncology", "Neurology", "Orthopedics", "Maternity"]
+
+RETAILERS = [
+    "SuperMart", "MegaBuy", "QuickShop", "FreshGrocer", "ValueKing", "HyperStore", "DailyNeeds"
+]
+
+ENERGY_PROVIDERS = [
+    "PowerGen", "EcoEnergy", "GridCorp", "BrightSpark", "Solaris", "AtomCo", "HydroFlow"
+]
+
+ENERGY_SOURCES = ["Coal", "Gas", "Nuclear", "Wind", "Solar", "Hydro", "Biomass"]
+
+UNIVERSITIES = [
+    "Oxford Brookes", "Cambridge Tech", "London Uni", "Manchester Met", "Leeds Arts", "Bristol Sci"
+]
+FACULTIES = ["Engineering", "Arts", "Science", "Law", "Medicine", "Business", "Humanities"]
+
+# Update Metrics to include these contexts
+METRICS_HEALTH = ["Patients Admitted", "Avg Wait Time (mins)", "Doctors on Duty", "Operations Performed"]
+METRICS_RETAIL = ["Daily Footfall", "Avg Basket Size (£)", "Transactions", "Loyalty Signups"]
+METRICS_ENERGY = ["Output (GWh)", "CO2 Emissions (Gt)", "Revenue ($m)", "Capacity (MW)"]
+METRICS_EDU = ["Students Enrolled", "Graduates", "Research Grants (£k)", "Publications"]
