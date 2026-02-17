@@ -10,10 +10,7 @@
     <div class="context-box">
         <h3>Context</h3>
         <div class="markdown-content">
-            {# We need to render markdown here. For simplicity, we'll just display pre-formatted text or use a simple JS
-            markdown parser if needed.
-            For now, displaying as pre-wrap text to preserve table structure #}
-            <pre>{{ question.context }}</pre>
+            {{ context_html | safe }}
         </div>
     </div>
 
@@ -22,7 +19,14 @@
         <p>{{ question.question }}</p>
 
         <form method="POST">
-            <input type="text" name="answer" placeholder="Type your answer here..." autocomplete="off" required>
+            <div class="select-wrapper">
+                <select name="answer" required>
+                    <option value="" disabled selected>Select an answer...</option>
+                    {% for opt in options %}
+                    <option value="{{ opt }}">{{ opt }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <button type="submit" class="btn-submit">Submit Answer</button>
         </form>
     </div>

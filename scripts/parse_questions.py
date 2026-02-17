@@ -85,9 +85,9 @@ def parse_readme(file_path, level):
 
         # 5. Capture Content based on state
         if is_capturing_context:
-            # If we are in a context block (tables, etc), strip strictly but keep structure for tables
-            if line_stripped:
-                current_context.append(line.rstrip())
+            # If we are in a context block, keep lines as is (stripped of trailing whitespace)
+            # We must preserve empty lines for markdown structure (e.g. separation between title and table)
+            current_context.append(line.rstrip())
         
         elif is_capturing_question_text:
              if current_question and line_stripped:
