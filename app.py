@@ -3,6 +3,7 @@ import json
 import random
 import re
 import markdown
+import time
 from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
@@ -16,124 +17,152 @@ def load_questions():
 
 def generate_distractors(correct_answer):
     """
-    Generates 5 distractor answers based on the correct answer.
-    Handles numbers, percentages, ratios, and some text patterns.
+    Generates 5 plausible distractor answers based on the correct answer.
     """
-    options = set()
-    options.add(correct_answer)
+    options = set([correct_answer])
     
-    # helper to add valid unique options (up to 6 total including correct)
     def add_option(opt):
-        if opt != correct_answer and len(options) < 6:
+        if opt != correct_answer and opt not in options:
             options.add(opt)
 
-    try:
-        # 1. Try Number Pattern: "123", "123.45", "$123", "123 units", "12%"
-        # Regex to capture prefix, number, suffix
-        num_match = re.match(r'^([^\d]*)([\d,]+(\.\d+)?)([^\d]*)$', correct_answer.strip())
+    # 1. Try Numerical Pattern: "$120,000", "45%", "150 units"
+    # Matches: Prefix + Number + Suffix
+    num_match = re.match(r'^([^\d]*)([\d,]+(?:\.\d+)?)([^\d]*)$', correct_answer.strip())
+    
+    if num_match:
+        prefix = num_match.group(1) or ""
+        num_str = num_match.group(2)
+        suffix = num_match.group(3) or ""
         
-        if num_match:
-            prefix = num_match.group(1)
-            number_str = num_match.group(2).replace(',', '')
-            suffix = num_match.group(4)
+        try:
+            val = float(num_str.replace(',', ''))
+            is_int = '.' not in num_str
             
-            try:
-                val = float(number_str)
-                is_int = '.' not in num_match.group(2)
+            # Determine "Roundness" or "Step Size"
+            # We want distractors to share the same divisibility
+            step_size = 1
+            if is_int and val != 0:
+                # Check divisibility by 10/5 powers
+                # e.g. 165000 -> div by 5000? Yes. 10000? No.
+                # simpler: find largest power of 10 divisor, then check 5*power
                 
-                # Generate variations
-                multipliers = [0.8, 0.9, 0.95, 1.05, 1.1, 1.2, 0.5, 1.5]
-                offsets = [-10, -5, -1, 1, 5, 10, 100]
-                 
-                # Mix of strategies
-                for _ in range(20): # Try enough times
+                # Check 10, 100, 1000...
+                p = 1
+                while p < val:
+                    if val % (p*10) == 0:
+                        p *= 10
+                    else:
+                        break
+                
+                # p is now e.g. 1000 for 165000
+                step_size = p 
+                
+                # Check if divisible by 5*p? (e.g. 5000)
+                if val % (p*5) == 0:
+                    step_size = p * 5
+                
+                # If val is small e.g. 45, p=1. Div by 5? Yes -> step=5.
+                if step_size == 1 and val % 5 == 0:
+                     step_size = 5
+            
+            # Generate candidates based on this step size
+            # multipliers are essentially "steps away"
+            # steps: +/- 1, 2, 3, 4, 5, 10 units of step_size
+            
+            offsets = [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 10, -10, 0.5, -0.5]
+            random.shuffle(offsets)
+            
+            for off in offsets:
+                if len(options) >= 6: break
+                
+                # Skip 0.5 if step_size is 1 (unless we want floats? no, stick to int structure)
+                if isinstance(off, float) and step_size == 1: continue
+                
+                new_val = val + (off * step_size)
+                
+                if new_val <= 0: continue # aptitude test numbers usually positive
+                if new_val == val: continue
+
+                # Double check integer logic
+                if is_int and new_val.is_integer():
+                     formatted_num = f"{int(new_val)}"
+                elif is_int:
+                     # If we generated a float from int inputs (e.g. 0.5 offset), ignore it to keep style
+                     continue 
+                else:
+                     formatted_num = f"{new_val:.2f}"
+                     if formatted_num.endswith('.00'): formatted_num = formatted_num[:-3]
+
+                if ',' in num_str:
+                     try:
+                        formatted_num = f"{float(formatted_num):,.0f}" if is_int else f"{float(formatted_num):,.2f}"
+                     except: pass
+
+                add_option(f"{prefix}{formatted_num}{suffix}")
+
+            # Fallback: if we didn't find enough "clean" numbers (e.g. val=17, step=1)
+            # Generate simple Percentage variations if still needed
+            if len(options) < 6:
+                multipliers = [0.9, 1.1, 0.8, 1.2, 0.75, 1.25]
+                for m in multipliers:
                     if len(options) >= 6: break
+                    nv = val * m
+                    if is_int: nv = round(nv)
+                    else: nv = round(nv, 2)
                     
-                    if random.random() < 0.5:
-                        mult = random.choice(multipliers)
-                        new_val = val * mult
-                    else:
-                        off = random.choice(offsets)
-                        # Scale offset by magnitude of val roughly
-                        if val > 100: off *= 10
-                        new_val = val + off
+                    if nv == val: continue
                     
-                    if new_val < 0 and val >= 0: new_val = abs(new_val) # Avoid negative if original positive
-                    
-                    if is_int:
-                        new_val = int(round(new_val))
-                    else:
-                        new_val = round(new_val, 2)
-                        
-                    # Format back
-                    formatted_num = f"{new_val}"
-                    if is_int: formatted_num = f"{int(new_val)}"
-                    
-                    # Check original string for comma
-                    if ',' in num_match.group(2):
-                         formatted_num = f"{new_val:,}"
+                    formatted_num = f"{int(nv)}" if is_int else f"{nv}"
+                    add_option(f"{prefix}{formatted_num}{suffix}")
 
-                    new_ans = f"{prefix}{formatted_num}{suffix}"
-                    add_option(new_ans)
-                    
-            except ValueError:
-                pass # Parsing failed
+        except ValueError:
+            pass 
 
-        # 2. Try Ratio Pattern: "3 : 4"
+    # 2. Try Ratio Pattern: "3 : 4"
+    if len(options) < 6:
         ratio_match = re.search(r'(\d+)\s*:\s*(\d+)', correct_answer)
         if ratio_match:
             a, b = int(ratio_match.group(1)), int(ratio_match.group(2))
             variations = [
-                f"{a+1} : {b}",
-                f"{a} : {b+1}",
-                f"{b} : {a}", # Inverse
-                f"{a+2} : {b+2}",
-                f"{a+1} : {b-1}",
-                f"{max(1, a-1)} : {max(1, b-1)}"
+                f"{b} : {a}",       # Inverse
+                f"{a} : {b+a}",     # Part to Whole error
+                f"{a+1} : {b+1}",   # Shift
+                f"{a-1} : {b+1}",   # Diverge
+                f"{a+2} : {b+2}",   # Shift 2
+                f"{a*2} : {b}",     # Scale one side
+                f"{a} : {b*2}"
             ]
             for v in variations:
                 add_option(v)
 
-        # 3. Try "Product X", "Store Y", "Class A", "Team B"
+    # 3. Categorical fallback (already good)
+    if len(options) < 6:
         categorical_match = re.match(r'^(Product|Store|Class|Team|Brand|City|Department|Company)\s+([A-Z])$', correct_answer, re.IGNORECASE)
         if categorical_match:
             entity = categorical_match.group(1)
-            char = categorical_match.group(2).upper()
-            # Generate other chars
-            import string
-            chars = list(string.ascii_uppercase)
-            random.shuffle(chars)
-            for c in chars:
-                if c != char:
-                    add_option(f"{entity} {c}")
-                    if len(options) >= 6: break
-    except Exception:
-        pass # Fallback safely
-        
-    # 4. Fallback: If we still don't have enough options
-    # If < 6 and it looked like a number, force more number variations
-    if len(options) < 6:
-        # Check if we have a number match from before
-         num_match = re.match(r'^([^\d]*)([\d,]+(\.\d+)?)([^\d]*)$', correct_answer.strip())
-         if num_match:
-             prefix = num_match.group(1)
-             number_str = num_match.group(2).replace(',', '')
-             suffix = num_match.group(4)
-             try:
-                 val = float(number_str)
-                 is_int = '.' not in num_match.group(2)
-                 while len(options) < 6:
-                     new_val = val * (1 + (random.random() - 0.5) * 0.5) # +/- 25% random
-                     if is_int: new_val = int(new_val)
-                     else: new_val = round(new_val, 2)
-                     formatted_num = f"{new_val:,}" if ',' in num_match.group(2) else f"{new_val}"
-                     add_option(f"{prefix}{formatted_num}{suffix}")
-             except: pass
-             
-    # Sort or shuffle?
+            char = categorical_match.group(2)
+            candidates = "ABCDE" if char <= 'E' else "PQRST"
+            for c in candidates:
+                if c != char: add_option(f"{entity} {c}")
+
+    # 4. Month Fallback
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    for m in months:
+        if len(options) >= 6: break
+        if m in correct_answer: # Simple substring check
+             # If "Jan", add "Feb", "Mar"...
+             curr_idx = months.index(m)
+             for i in range(1, 6):
+                 add_option(correct_answer.replace(m, months[(curr_idx+i)%12]))
+             break
+
+    # 5. Generic Fallback
     final_options = list(options)
     random.shuffle(final_options)
-    return final_options
+    while len(final_options) < 6:
+       final_options.append("None of the above") 
+       
+    return final_options[:6]
 
 @app.route('/')
 def index():
@@ -179,8 +208,6 @@ def start_quiz(level):
     session['answers'] = []
     
     return redirect(url_for('quiz'))
-
-import time
 
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
@@ -228,10 +255,7 @@ def quiz():
         
         return redirect(url_for('quiz'))
     
-    # GET request - Set start time if not already set (reloading page shouldn't reset timer ideally, 
-    # but for per-question accuracy 'viewing time' counts. 
-    # If we want strict 'attempt' time, we set it only if it doesn't exist?
-    # But if they navigate away and come back? Let's reset on new question load (which happens after POST redirect)
+    # GET request - Set start time if not already set 
     if 'question_start_time' not in session:
         session['question_start_time'] = time.time()
         
