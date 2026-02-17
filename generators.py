@@ -349,6 +349,63 @@ class TableGenerator:
             "options": ["0", "1", "2", "3", "4", "5"]
         }
 
+    def gen_q_expected_loss(self):
+        # Specific for Banking/Risk context
+        # EL = PD * LGD * EAD
+        # We need to see if we have these columns. If not, we can fake a question context.
+        # Ideally, we create a specific Risk Table Generator, but for now we'll inject it into standard table 
+        # if the metrics align OR just force a specific question type if we are in "Bank" mode.
+        
+        # Check if we are in a Bank or Risk context by checking row labels or headers
+        is_risk_context = False
+        if any(b in self.row_labels for b in archetypes.BANKS): is_risk_context = True
+        if any(m in self.title for m in ["Risk", "Bank", "Portfolio"]): is_risk_context = True
+        
+        if not is_risk_context:
+            return None
+
+        # Pick a random entity
+        r_idx = random.randint(0, len(self.row_labels)-1)
+        entity = self.row_labels[r_idx]
+        
+        # Generate random risk params on the fly for the question context
+        pd = random.choice([0.01, 0.02, 0.05, 0.10])
+        lgd = random.choice([0.20, 0.40, 0.45, 0.60])
+        ead = random.randint(10, 100) * 1000000 # 10m to 100m
+        
+        el = pd * lgd * ead
+        
+        return {
+            "question": f"For {entity}, if the Probability of Default (PD) is {pd:.1%} and Loss Given Default (LGD) is {lgd:.1%} with an Exposure at Default (EAD) of ${ead/1000000:.0f}m, what is the Expected Loss?",
+            "answer": f"${el:,.0f}",
+            "solution": f"Expected Loss = PD * LGD * EAD. {pd} * {lgd} * {ead} = {el:,.0f}.",
+            "options": None
+        }
+
+    def gen_q_validation_error(self):
+        # "If the model predicted X but actual was Y, what is the % error?"
+        # Only for Risk Model or similar contexts
+        if "Model" not in str(self.row_labels) and "Model" not in self.title:
+             # Allow it for other contexts too as a generic "Start of Year vs End of Year" prediction?
+             # Let's restrict to where it makes some sense or just generic.
+             pass
+             
+        r_idx = random.randint(0, len(self.row_labels)-1)
+        entity = self.row_labels[r_idx]
+        
+        actual = random.randint(100, 1000)
+        predicted = actual + random.randint(-50, 50)
+        
+        error = abs(predicted - actual)
+        pct_error = (error / actual) * 100
+        
+        return {
+            "question": f"For {entity}, if the model predicted {predicted} vs an actual value of {actual}, what is the absolute percentage error (to 1 decimal place)?",
+            "answer": f"{pct_error:.1f}%",
+            "solution": f"|{predicted} - {actual}| / {actual} = {error}/{actual} = {pct_error:.2f}%",
+            "options": None
+        }
+
 class StockTableGenerator:
     def __init__(self):
         self.context = ""
