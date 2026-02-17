@@ -7014,5 +7014,41 @@
         "solution": "Diamond Contract Cost: 6 months (contract length) \u00d7 \u00a340/month = \u00a3240.\nPlatinum Contract Cost:\n* Standard Monthly Cost: \u00a345.\n* Discounted Price: \u00a345 - (20% of \u00a345) = \u00a345 - \u00a39 = \u00a336.\n* Platinum Contract Length: 24 months.\n* Total Platinum Cost: 24 \u00d7 \u00a336 = \u00a3864.\nTotal Cost = \u00a3240 (Diamond) + \u00a3864 (Platinum) = \u00a31,104.",
         "answer": "1,104",
         "chart_data": null
+    },
+    {
+        "id": 304,
+        "level": "Real",
+        "context": "**Table 1: Share Price and Dividend**\n\n| Share | Yearly Dividend (pence) Jan-June | Yearly Dividend (pence) July-Dec | Today's Price (\u00a3) | Previous Week's Price Lowest (\u00a3) | Previous Week's Price Highest (\u00a3) |\n|---|---|---|---|---|---|\n| **Acorn** | 45 | 15 | 14 | 13.5 | 15.25 |\n| **EDP** | 15 | 60 | 13.1 | 12.8 | 14.25 |\n| **Jasone** | 20 | 50 | 12.5 | 11.75 | 12.3 |\n| **Kilic** | 30 | 35 | 9.25 | 8.65 | 10.05 |\n| **Soares** | 10 | 30 | 8.1 | 7.85 | 8.8 |\n| **Safron** | 35 | 35 | 13.8 | 13.65 | 13.95 |\n| **Troika** | 40 | 10 | 12.75 | 12.6 | 12.9 |\n",
+        "question": "At today's prices, what's the total cost of buying 450 Safron shares and half as many Troika shares (to the nearest \u00a3100)?",
+        "solution": "Safron Cost: 450 shares \u00d7 \u00a313.8 = \u00a36,210.\nTroika Quantity: 450 / 2 = 225 shares.\nTroika Cost: 225 shares \u00d7 \u00a312.75 = \u00a32,868.75.\nTotal Cost: \u00a36,210 + \u00a32,868.75 = \u00a39,078.75.\nRounding to the nearest \u00a3100 gives \u00a39,100.",
+        "answer": "9,100",
+        "chart_data": null
+    },
+    {
+        "id": 305,
+        "level": "Real",
+        "context": "**Table 1: Share Price and Dividend**\n\n| Share | Yearly Dividend (pence) Jan-June | Yearly Dividend (pence) July-Dec | Today's Price (\u00a3) | Previous Week's Price Lowest (\u00a3) | Previous Week's Price Highest (\u00a3) |\n|---|---|---|---|---|---|\n| **Acorn** | 45 | 15 | 14 | 13.5 | 15.25 |\n| **EDP** | 15 | 60 | 13.1 | 12.8 | 14.25 |\n| **Jasone** | 20 | 50 | 12.5 | 11.75 | 12.3 |\n| **Kilic** | 30 | 35 | 9.25 | 8.65 | 10.05 |\n| **Soares** | 10 | 30 | 8.1 | 7.85 | 8.8 |\n| **Safron** | 35 | 35 | 13.8 | 13.65 | 13.95 |\n| **Troika** | 40 | 10 | 12.75 | 12.6 | 12.9 |\n",
+        "question": "For which share is the total yearly dividend valued at over 7% of today's share price?",
+        "solution": "Calculate (Total Dividend \u00f7 Today's Price) for each share. (Note: Convert dividend to pounds by dividing by 100).\n* Acorn: (45+15)p = \u00a30.60. \u00a30.60 \u00f7 \u00a314 \u2248 4.3%\n* EDP: (15+60)p = \u00a30.75. \u00a30.75 \u00f7 \u00a313.1 \u2248 5.7%\n* Jasone: (20+50)p = \u00a30.70. \u00a30.70 \u00f7 \u00a312.5 = 5.6%\n* **Kilic**: (30+35)p = \u00a30.65. \u00a30.65 \u00f7 \u00a39.25 \u2248 **7.03%** (>7%)\n* Soares: (10+30)p = \u00a30.40. \u00a30.40 \u00f7 \u00a38.1 \u2248 4.9%\n* Safron: (35+35)p = \u00a30.70. \u00a30.70 \u00f7 \u00a313.8 \u2248 5.1%\n* Troika: (40+10)p = \u00a30.50. \u00a30.50 \u00f7 \u00a312.75 \u2248 3.9%",
+        "answer": "Kilic",
+        "chart_data": null,
+        "options": [
+            "Acorn",
+            "EDP",
+            "Jasone",
+            "Kilic",
+            "Soares",
+            "Safron",
+            "Troika"
+        ]
+    },
+    {
+        "id": 306,
+        "level": "Real",
+        "context": "**Table 1: Share Price and Dividend**\n\n| Share | Yearly Dividend (pence) Jan-June | Yearly Dividend (pence) July-Dec | Today's Price (\u00a3) | Previous Week's Price Lowest (\u00a3) | Previous Week's Price Highest (\u00a3) |\n|---|---|---|---|---|---|\n| **Acorn** | 45 | 15 | 14 | 13.5 | 15.25 |\n| **EDP** | 15 | 60 | 13.1 | 12.8 | 14.25 |\n| **Jasone** | 20 | 50 | 12.5 | 11.75 | 12.3 |\n| **Kilic** | 30 | 35 | 9.25 | 8.65 | 10.05 |\n| **Soares** | 10 | 30 | 8.1 | 7.85 | 8.8 |\n| **Safron** | 35 | 35 | 13.8 | 13.65 | 13.95 |\n| **Troika** | 40 | 10 | 12.75 | 12.6 | 12.9 |\n",
+        "question": "If today you sold 50,000 Kilic shares, after collecting the July-Dec dividend, how many Soares shares could you buy with the proceeds (to the nearest 1,000)?",
+        "solution": "Proceeds from selling Kilic: 50,000 shares \u00d7 \u00a39.25 = \u00a3462,500.\nDividends collected (July-Dec): 50,000 shares \u00d7 35p = 1,750,000p = \u00a317,500.\nTotal funds available: \u00a3462,500 + \u00a317,500 = \u00a3480,000.\nSoares share price: \u00a38.1.\nNumber of Soares shares: \u00a3480,000 \u00f7 \u00a38.1 \u2248 59,259.\nRounding to the nearest 1,000 gives 59,000.",
+        "answer": "59,000",
+        "chart_data": null
     }
 ]

@@ -5,6 +5,7 @@ import re
 import markdown
 import time
 from flask import Flask, render_template, request, redirect, url_for, session
+from generators import generate_endless_set
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Change this for production
@@ -223,11 +224,49 @@ def start_quiz(level):
     
     return redirect(url_for('quiz'))
 
+@app.route('/start_endless')
+def start_endless():
+    session['mode'] = 'endless'
+    session['score'] = 0
+    session['answers'] = []
+    
+    # Generate first set
+    data = generate_endless_set()
+    session['quiz_questions'] = data['questions']
+    session['current_context'] = data['context']
+    session['current_index'] = 0
+    
+    # We need to manually inject context into questions because the generator separates them
+    # Actually, let's keep them separate in session or merge them here
+    # Merging is easier for existing quiz logic
+    for q in session['quiz_questions']:
+        q['context'] = data['context'] # Embed context
+        q['chart_data'] = None # Ensure chart_data exists
+        
+    return redirect(url_for('quiz'))
+
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
     questions = session.get('quiz_questions', [])
     current_index = session.get('current_index', 0)
     
+    # ENDLESS MODE LOGIC: If we run out of questions, generate more!
+    if session.get('mode') == 'endless' and (not questions or current_index >= len(questions)):
+        data = generate_endless_set()
+        new_questions = data['questions']
+        for q in new_questions:
+            q['context'] = data['context']
+            q['chart_data'] = None # Ensure chart_data exists
+            
+        # Append new questions? No, replace them to keep session light?
+        # But we need to reset index.
+        # Let's replace the list.
+        session['quiz_questions'] = new_questions
+        session['current_index'] = 0
+        questions = new_questions
+        current_index = 0
+        session.modified = True
+        
     if not questions or current_index >= len(questions):
         return redirect(url_for('result'))
     
