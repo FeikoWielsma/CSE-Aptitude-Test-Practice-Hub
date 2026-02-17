@@ -381,12 +381,22 @@ class CurrencyTableGenerator:
         
         total_gbp = sum(target_city['vals'])
         total_converted = total_gbp * rates[target_curr['code']]
-        total_rounded = int(round(total_converted))
         
+        # Consistent Rounding:
+        # If JPY (high numbers), round to nearest 1000.
+        # Else (USD/EUR ~1000s), round to nearest 10.
+        
+        if target_curr['code'] == "JPY":
+            total_rounded = int(round(total_converted, -3)) # Nearest 1000
+            rounding_text = "(to nearest 1,000)"
+        else:
+            total_rounded = int(round(total_converted, -1)) # Nearest 10
+            rounding_text = "(to nearest 10)"
+
         questions.append({
-            "question": f"What were the total sales (Jan-Mar) for {target_city['city']} in {target_curr['code']} (to nearest {target_curr['code']}000)?",
+            "question": f"What were the total sales (Jan-Mar) for {target_city['city']} in {target_curr['code']} {rounding_text}?",
             "answer": f"{total_rounded:,}",
-            "solution": f"Total GBP: {total_gbp}. Rate: {rates[target_curr['code']]}. Converted: {total_converted:.2f}. Round: {total_rounded}.",
+            "solution": f"Total GBP: {total_gbp:,}. Rate: {rates[target_curr['code']]}. Converted: {total_converted:,.2f}. Round to {total_rounded:,}.",
             "options": None
         })
         
