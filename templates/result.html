@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="result-container">
+    <h2>Quiz Completed!</h2>
+    <p class="score">You scored {{ score }} out of {{ total }}</p>
+
+    <div class="details">
+        <h3>Review</h3>
+        {% for item in details %}
+        <div class="review-item {{ 'correct' if item.is_correct else 'incorrect' }}">
+            <p><strong>Question:</strong> {{ item.question }}</p>
+            <p><strong>Your Answer:</strong> {{ item.user_answer }}</p>
+            <p><strong>Correct Answer:</strong> {{ item.correct_answer }}</p>
+            <div class="explanation">
+                <strong>Solution:</strong>
+                <pre>{{ item.explanation }}</pre>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn">Back to Home</a>
+
+    <script>
+        // Clear timer on result page
+        sessionStorage.removeItem('quizStartTime');
+    </script>
+</div>
+{% endblock %}

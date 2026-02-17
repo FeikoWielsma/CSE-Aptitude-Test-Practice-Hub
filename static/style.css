@@ -1,0 +1,181 @@
+:root {
+    --primary-color: #4F46E5;
+    --secondary-color: #818CF8;
+    --background-color: #F3F4F6;
+    --text-color: #1F2937;
+    --card-bg: #FFFFFF;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    background-color: var(--card-bg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+header nav a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 600;
+    margin-left: 1rem;
+}
+
+.reset-link {
+    color: #EF4444;
+}
+
+
+.hero {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.level-select {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: var(--secondary-color);
+}
+
+.quiz-container,
+.result-container {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.context-box {
+    background-color: #F9FAFB;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+}
+
+.context-box pre {
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+
+/* Table Styles from Markdown */
+.markdown-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9em;
+}
+
+.markdown-content th,
+.markdown-content td {
+    padding: 0.75rem;
+    border: 1px solid #D1D5DB;
+    text-align: left;
+}
+
+.markdown-content th {
+    background-color: #E5E7EB;
+    font-weight: 600;
+}
+
+.markdown-content tr:nth-child(even) {
+    background-color: #F9FAFB;
+}
+
+.select-wrapper {
+    margin-bottom: 1rem;
+}
+
+.select-wrapper select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 0.375rem;
+    background-color: white;
+    font-size: 1rem;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.review-item {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem;
+    border-left: 4px solid transparent;
+}
+
+.review-item.correct {
+    background-color: #ECFDF5;
+    border-left-color: #10B981;
+}
+
+.review-item.incorrect {
+    background-color: #FEF2F2;
+    border-left-color: #EF4444;
+}
+
+.explanation {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 0.5rem;
+}

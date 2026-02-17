@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h2>Improve Your Data Interpretation Skills</h2>
+    <p>Select a difficulty level to start practicing.</p>
+
+    <div class="level-select">
+        <a href="{{ url_for('start_quiz', level='Basic') }}" class="btn">Basic</a>
+        <a href="{{ url_for('start_quiz', level='Intermediate') }}" class="btn">Intermediate</a>
+        <a href="{{ url_for('start_quiz', level='Advanced') }}" class="btn">Advanced</a>
+    </div>
+</div>
+{% endblock %}
