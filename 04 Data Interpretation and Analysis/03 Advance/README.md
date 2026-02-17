@@ -11,6 +11,7 @@ This file contains **100 advanced-level practice questions** for Data Interpreta
 | Y       | 300             | 320             | 350             | 250             | 270             | 300             |
 | Z       | 200             | 220             | 250             | 150             | 180             | 200             |
 
+
 **Table 2: Unit Price ($ per unit) of Products (2021–2023)**  
 | Product | 2021 | 2022 | 2023 |
 |---------|------|------|------|

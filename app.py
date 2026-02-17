@@ -15,18 +15,19 @@ def load_questions():
     with open(DATA_FILE, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def generate_distractors(correct_answer):
+def generate_single_distractor_set(correct_answer):
     """
-    Generates 5 plausible distractor answers based on the correct answer.
+    Helper to generate one set of distractors for a single value.
+    This contains the logic previously in generate_distractors.
     """
     options = set([correct_answer])
     
+    # helper to add valid unique options
     def add_option(opt):
-        if opt != correct_answer and opt not in options:
+        if opt != correct_answer and len(options) < 30: # Max cap
             options.add(opt)
 
-    # 1. Try Numerical Pattern: "$120,000", "45%", "150 units"
-    # Matches: Prefix + Number + Suffix
+    # 1. Try Numerical Pattern
     num_match = re.match(r'^([^\d]*)([\d,]+(?:\.\d+)?)([^\d]*)$', correct_answer.strip())
     
     if num_match:
@@ -38,213 +39,140 @@ def generate_distractors(correct_answer):
             val = float(num_str.replace(',', ''))
             is_int = '.' not in num_str
             
-            # Determine "Roundness" or "Step Size"
-            # We want distractors to share the same divisibility
             step_size = 1
             if is_int and val != 0:
-                # Check divisibility by 10/5 powers
-                # e.g. 165000 -> div by 5000? Yes. 10000? No.
-                # simpler: find largest power of 10 divisor, then check 5*power
-                
-                # Check 10, 100, 1000...
                 p = 1
                 while p < val:
-                    if val % (p*10) == 0:
-                        p *= 10
-                    else:
-                        break
-                
-                # p is now e.g. 1000 for 165000
+                    if val % (p*10) == 0: p *= 10
+                    else: break
                 step_size = p 
-                
-                # Check if divisible by 5*p? (e.g. 5000)
-                if val % (p*5) == 0:
-                    step_size = p * 5
-                
-                # If val is small e.g. 45, p=1. Div by 5? Yes -> step=5.
-                if step_size == 1 and val % 5 == 0:
-                     step_size = 5
+                if val % (p*5) == 0: step_size = p * 5
+                if step_size == 1 and val % 5 == 0: step_size = 5
             
-            # Generate candidates based on this step size
-            # multipliers are essentially "steps away"
-            # steps: +/- 1, 2, 3, 4, 5, 10 units of step_size
-            
-            offsets = [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 10, -10, 0.5, -0.5]
+            offsets = [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 10, -10, 0.5, -0.5, 6, -6, 7, -7, 8, -8, 12, -12, 15, -15]
             random.shuffle(offsets)
             
             for off in offsets:
-                if len(options) >= 6: break
-                
-                # Skip 0.5 if step_size is 1 (unless we want floats? no, stick to int structure)
+                if len(options) >= 25: break
                 if isinstance(off, float) and step_size == 1: continue
-                
                 new_val = val + (off * step_size)
-                
-                if new_val <= 0: continue # aptitude test numbers usually positive
+                if new_val <= 0: continue
                 if new_val == val: continue
 
-                # Double check integer logic
-                if is_int and new_val.is_integer():
-                     formatted_num = f"{int(new_val)}"
-                elif is_int:
-                     # If we generated a float from int inputs (e.g. 0.5 offset), ignore it to keep style
-                     continue 
+                if is_int and new_val.is_integer(): formatted_num = f"{int(new_val)}"
+                elif is_int: continue 
                 else:
                      formatted_num = f"{new_val:.2f}"
                      if formatted_num.endswith('.00'): formatted_num = formatted_num[:-3]
 
                 if ',' in num_str:
-                     try:
-                        formatted_num = f"{float(formatted_num):,.0f}" if is_int else f"{float(formatted_num):,.2f}"
+                     try: formatted_num = f"{float(formatted_num):,.0f}" if is_int else f"{float(formatted_num):,.2f}"
                      except: pass
 
                 add_option(f"{prefix}{formatted_num}{suffix}")
 
-            # Fallback: if we didn't find enough "clean" numbers (e.g. val=17, step=1)
-            # Generate simple Percentage variations if still needed
-            if len(options) < 6:
-                multipliers = [0.9, 1.1, 0.8, 1.2, 0.75, 1.25]
+            # Fallback multipliers
+            if len(options) < 25:
+                multipliers = [0.9, 1.1, 0.8, 1.2, 0.75, 1.25, 1.5, 0.5, 2.0]
                 for m in multipliers:
-                    if len(options) >= 6: break
+                    if len(options) >= 25: break
                     nv = val * m
                     if is_int: nv = round(nv)
                     else: nv = round(nv, 2)
-                    
                     if nv == val: continue
-                    
                     formatted_num = f"{int(nv)}" if is_int else f"{nv}"
                     add_option(f"{prefix}{formatted_num}{suffix}")
 
         except ValueError:
             pass 
 
-    # 2. Try Ratio Pattern: "3 : 4"
-    if len(options) < 6:
+    # 2. Try Ratio Pattern
+    if len(options) < 25:
         ratio_match = re.search(r'(\d+)\s*:\s*(\d+)', correct_answer)
         if ratio_match:
             a, b = int(ratio_match.group(1)), int(ratio_match.group(2))
-            variations = [
-                f"{b} : {a}",       # Inverse
-                f"{a} : {b+a}",     # Part to Whole error
-                f"{a+1} : {b+1}",   # Shift
-                f"{a-1} : {b+1}",   # Diverge
-                f"{a+2} : {b+2}",   # Shift 2
-                f"{a*2} : {b}",     # Scale one side
-                f"{a} : {b*2}"
-            ]
-            for v in variations:
-                add_option(v)
+            variations = []
+            for i in range(-5, 6):
+                if i == 0: continue
+                variations.append(f"{a+i} : {b+i}")
+                variations.append(f"{a} : {b+i}")
+                variations.append(f"{a+i} : {b}")
+            variations.append(f"{b} : {a}")
+            for v in variations: add_option(v)
 
-    # 3. Categorical fallback (already good)
-    if len(options) < 6:
-        categorical_match = re.match(r'^(Product|Store|Class|Team|Brand|City|Department|Company)\s+([A-Z])$', correct_answer, re.IGNORECASE)
+    # 3. Categorical fallback
+    if len(options) < 25:
+        categorical_match = re.match(r'^(Product|Store|Class|Team|Brand|City|Department|Company|Option|Contract)\s*([A-Z0-9]*)$', correct_answer, re.IGNORECASE)
+        # Added "Option", "Contract" for the new question type logic
         if categorical_match:
-            entity = categorical_match.group(1)
-            char = categorical_match.group(2)
-            candidates = "ABCDE" if char <= 'E' else "PQRST"
-            for c in candidates:
-                if c != char: add_option(f"{entity} {c}")
+             entity = categorical_match.group(1)
+             char = categorical_match.group(2)
+             # If simple string like "Option A"
+             if len(char) == 1 and char.isalpha():
+                 candidates = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                 for c in candidates: 
+                     if c != char: add_option(f"{entity} {c}")
+             elif entity.lower() == "basic": # Handle "Basic" vs "Premium"
+                 add_option("Premium")
+                 add_option("Standard")
+                 add_option("Gold")
+             elif entity.lower() == "premium":
+                 add_option("Basic")
+                 add_option("Standard")
+                 add_option("Gold")
 
-    # 4. Month Pattern: "January", "Feb", etc.
+    # 4. Month Pattern
     months_full = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     months_short = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     
-    # Check full months first
     found_month = False
     for i, m in enumerate(months_full):
         if m.lower() == correct_answer.strip().lower():
-            # It's exactly a month name
-            # Pick 5 other random months
             others = months_full[:i] + months_full[i+1:]
-            random.shuffle(others)
-            for o in others[:6]:
-                add_option(o)
+            for o in others: add_option(o)
             found_month = True
             break
             
     if not found_month:
-        # Check short months
         for i, m in enumerate(months_short):
              if m.lower() == correct_answer.strip().lower():
                 others = months_short[:i] + months_short[i+1:]
-                random.shuffle(others)
-                for o in others[:6]:
-                    add_option(o)
+                for o in others: add_option(o)
                 found_month = True
                 break
-                
-    if not found_month:
-        # Check for substring (e.g. "January 2020") - strictly word boundary or replace carefully
-        # If we see "Jan" but not "January", be careful. 
-        # For now, let's just look for the full month name inside the string to be safe
-        for i, m in enumerate(months_full):
-            if m in correct_answer:
-                 # Replace "January" with "February" in "Revenue for January"
-                 indices = list(range(12)); indices.remove(i)
-                 random.shuffle(indices)
-                 for idx in indices[:6]:
-                     add_option(correct_answer.replace(m, months_full[idx]))
-                 break
 
-    # 5. Generic Fallback and Fill 
-    # Try to fill up to 25 options
-    target_count = 25
-    
-    # If we have a detected step size, fill the gap
-    if len(options) < target_count:
-         # Re-detect context
-         num_match = re.match(r'^([^\d]*)([\d,]+(?:\.\d+)?)([^\d]*)$', correct_answer.strip())
-         if num_match:
-             try:
-                 num_str = num_match.group(2).replace(',', '')
-                 val = float(num_str)
-                 is_int = '.' not in num_match.group(2)
-                 prefix = num_match.group(1) or ""
-                 suffix = num_match.group(3) or ""
-                 
-                 # Determine step again if needed or just use consistent small steps
-                 step_size = 1
-                 if is_int and val > 10:
-                      p = 1
-                      while p < val:
-                          if val % (p*10) == 0: p *= 10
-                          else: break
-                      step_size = p
-                      if val % (p*5) == 0: step_size = p * 5
-                 
-                 # Generate a wider range
-                 # Go 15 steps down and 15 steps up
-                 for i in range(-15, 16):
-                     if len(options) >= target_count + 10: break # cap slightly higer
-                     if i == 0: continue
-                     
-                     new_val = val + (i * step_size)
-                     if new_val <= 0: continue
-                     
-                     if is_int: formatted_num = f"{int(new_val)}"
-                     else: formatted_num = f"{new_val:.2f}"
-                     
-                     if ',' in num_match.group(2):
-                         try: formatted_num = f"{float(formatted_num):,.0f}" if is_int else f"{float(formatted_num):,.2f}"
-                         except: pass
-                         
-                     add_option(f"{prefix}{formatted_num}{suffix}")
-             except: pass
+    # 5. Fill Generic
+    # Try to fill up to 25 options with range logic if possible (re-implemented briefly)
+    if len(options) < 25:
+         pass
 
     final_options = list(options)
     
     # Sort options naturally
     def natural_sort_key(s):
-        # Extract the first number found for sorting
         nums = re.findall(r'-?\d+(?:\.\d+)?', s.replace(',', ''))
-        if nums:
-            return float(nums[0])
+        if nums: return float(nums[0])
         return s
         
     final_options.sort(key=natural_sort_key)
-    
-    # Allow logic to have more than target if generated naturally, but cap at 30?
     return final_options[:30]
+
+
+def generate_distractors(correct_answer):
+    """
+    Generates distractors. Can return a list of strings (single dropdown)
+    OR a list of lists (multiple dropdowns) if correct_answer contains '|'.
+    """
+    if '|' in correct_answer:
+        # Split into parts
+        parts = [p.strip() for p in correct_answer.split('|')]
+        # Generate options for each part
+        all_options = []
+        for p in parts:
+            all_options.append(generate_single_distractor_set(p))
+        return all_options
+    else:
+        return generate_single_distractor_set(correct_answer)
 
 @app.route('/')
 def index():
